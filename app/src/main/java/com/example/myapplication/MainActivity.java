@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -17,10 +18,13 @@ public class MainActivity extends AppCompatActivity {
 
     private int contact_id = 0;
     private ArrayList<Contact> contacts = new ArrayList<Contact>();
-    public static final int BUTTON_REQUEST = 1;
+    private TextView name;
+    private ImageView avatar;
+    public static final int CONTACT_REQUEST = 1;
+    public static final int SOUND_REQUEST = 2;
 
     public void changeCurrentContact() {
-        TextView name = (TextView) findViewById(R.id.contact_name_text);
+        name = (TextView) findViewById(R.id.contact_name_text);
         name.setText(contacts.get(contact_id).getName());
 
         ImageView avatar = (ImageView) findViewById(R.id.avatar);
@@ -44,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        avatar = (ImageView) findViewById(R.id.avatar);
         Button contact_button = (Button) findViewById(R.id.contact_button);
+        Button sound_button = (Button) findViewById(R.id.sound_button);
 
         try {
             contacts.add(new Contact("Jan Kowalski", getRandomSound(), getRandomImage()));
@@ -63,8 +69,42 @@ public class MainActivity extends AppCompatActivity {
                 Intent selectContact = new Intent(MainActivity.this, ContactActivity.class);
                 selectContact.putExtra("contact_id", contact_id);
                 selectContact.putExtra("contacts", contacts);
-                startActivityForResult(selectContact, BUTTON_REQUEST);
+                startActivityForResult(selectContact, CONTACT_REQUEST);
             }
         });
+
+        sound_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent selectContact = new Intent(MainActivity.this, SoundActivity.class);
+                selectContact.putExtra("contact_id", contact_id);
+                selectContact.putExtra("contacts", contacts);
+                startActivityForResult(selectContact, SOUND_REQUEST);
+            }
+        });
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode) {
+            case (CONTACT_REQUEST) : {
+                if (resultCode == Activity.RESULT_OK) {
+                    contact_id = data.getIntExtra("contact_id", 0);
+                    name.setText(((Contact) contacts.get(contact_id)).getName());
+                    avatar.setImageResource(((Contact) contacts.get(contact_id)).getImage());
+                }
+                break;
+            }
+            case (SOUND_REQUEST) : {
+                if (resultCode == Activity.RESULT_OK) {
+                    int sound = data.getIntExtra("sound_id", 0);
+                    TypedArray sounds = getResources().obtainTypedArray(R.array.sounds);
+                    ((Contact) contacts.get(contact_id)).setSound(sounds.getResourceId(sound, -1));
+                }
+                break;
+            }
+        }
     }
 }

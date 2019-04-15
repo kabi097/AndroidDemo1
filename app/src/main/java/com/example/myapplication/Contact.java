@@ -39,4 +39,9 @@ public class Contact implements Serializable {
     public void setImage(int image) {
         this.image = image;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
