@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        super.onStop();
+        super.onPause();
         buttonPlayer.pause();
     }
 
