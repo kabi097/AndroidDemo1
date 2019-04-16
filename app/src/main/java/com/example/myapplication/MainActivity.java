@@ -3,7 +3,11 @@ package com.example.myapplication;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +26,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageView avatar;
     public static final int CONTACT_REQUEST = 1;
     public static final int SOUND_REQUEST = 2;
+
+    //Sounds
+    private MediaPlayer buttonPlayer;
 
     public void changeCurrentContact() {
         name = (TextView) findViewById(R.id.contact_name_text);
@@ -48,6 +55,37 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Sounds
+        TypedArray sounds = getResources().obtainTypedArray(R.array.sounds);
+        buttonPlayer = new MediaPlayer();
+        buttonPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        buttonPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.start();
+            }
+        });
+        final FloatingActionButton play_button = (FloatingActionButton) findViewById(R.id.play_button);
+        play_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (buttonPlayer.isPlaying()) {
+                    buttonPlayer.stop();
+                    play_button.setImageResource(R.drawable.ic_play);
+                } else {
+                    buttonPlayer.reset();
+                    try {
+                        buttonPlayer.setDataSource(getApplicationContext(),Uri.parse("android.resource://"  +  getPackageName()  +  "/"  +
+                                ((Contact) contacts.get(contact_id)).getSound()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    buttonPlayer.prepareAsync();
+                    play_button.setImageResource(R.drawable.ic_stop);
+                }
+            }
+        });
+
         avatar = (ImageView) findViewById(R.id.avatar);
         Button contact_button = (Button) findViewById(R.id.contact_button);
         Button sound_button = (Button) findViewById(R.id.sound_button);
@@ -56,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
             contacts.add(new Contact("Jan Kowalski", getRandomSound(), getRandomImage()));
             contacts.add(new Contact("Andrzej Cichocki", getRandomSound(), getRandomImage()));
             contacts.add(new Contact("Janusz Tracz", getRandomSound(), getRandomImage()));
+            contacts.add(new Contact("Piotr Gracz", getRandomSound(), getRandomImage()));
+            contacts.add(new Contact("Sławomir Zapałek", getRandomSound(), getRandomImage()));
+            contacts.add(new Contact("Damian Zachwile", getRandomSound(), getRandomImage()));
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -106,5 +147,24 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
+    }
+
+    //Sounds
+
+    @Override
+    protected void onPause() {
+        super.onStop();
+        buttonPlayer.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        buttonPlayer.release();
     }
 }
